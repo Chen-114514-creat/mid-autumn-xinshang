@@ -1,0 +1,1127 @@
+<!-- AI生成 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#12041c" />
+<title>🥰 中秋节快乐</title>
+<style>
+  :root {
+    --neon: #ff4fd8;
+    --neon-soft: #ff8ae6;
+    --violet: #c084fc;
+    --bg-deep: #0c0214;
+    --bg-mid: #1a0628;
+    --petal: #c4785a;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-deep);
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    color: var(--neon);
+    touch-action: none;
+  }
+
+  #stage {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 90% 70% at 20% 15%, rgba(180, 40, 160, 0.35), transparent 55%),
+      radial-gradient(ellipse 80% 60% at 85% 30%, rgba(255, 60, 180, 0.22), transparent 50%),
+      radial-gradient(ellipse 100% 80% at 50% 100%, rgba(90, 20, 100, 0.45), transparent 60%),
+      linear-gradient(165deg, var(--bg-mid) 0%, var(--bg-deep) 45%, #180522 100%);
+    cursor: pointer;
+    perspective: 900px;
+    perspective-origin: 50% 42%;
+  }
+
+  @media (max-width: 480px) {
+    #stage {
+      perspective: 720px;
+      perspective-origin: 50% 48%;
+    }
+    #world {
+      inset: -4%;
+    }
+  }
+
+  #stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(8, 0, 14, 0.45) 100%);
+    z-index: 5;
+  }
+
+  /* 3D world — tilts with pointer / gyro */
+  #world {
+    position: absolute;
+    inset: -6%;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .layer {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+    transform-style: preserve-3d;
+    pointer-events: none;
+  }
+
+  /* 字面斜侧立体：整块文字像贴在一侧倾的 3D 平面上 */
+  #main-text {
+    transform-style: preserve-3d;
+    transform: rotateY(-22deg) rotateX(10deg) rotateZ(-8deg) scale(1.15);
+    transform-origin: 70% 40%;
+  }
+
+  #bg-text {
+    transform-style: preserve-3d;
+    transform: rotateY(-18deg) rotateX(8deg) rotateZ(-6deg) scale(1.1);
+    transform-origin: 65% 35%;
+  }
+
+  #bg-text { z-index: 2; }
+  #petals { z-index: 3; }
+  #main-text { z-index: 4; }
+  #sparkles { z-index: 5; }
+  #fx-layer { z-index: 5; pointer-events: none; }
+  #tap-layer { z-index: 7; pointer-events: none; }
+
+  /* —— 流星：向下滑落 —— */
+  .shooting-star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: #fff0fc;
+    box-shadow:
+      0 0 6px 1px rgba(255, 160, 230, 0.9),
+      0 0 18px 3px rgba(255, 79, 216, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    animation: starFall linear infinite;
+    transform-style: preserve-3d;
+  }
+
+  .shooting-star::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    right: 2px;
+    width: 56px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(to left, rgba(255, 220, 250, 0.95), rgba(255, 120, 220, 0.35), transparent);
+    transform: rotate(28deg);
+    transform-origin: right center;
+  }
+
+  @keyframes starFall {
+    0% {
+      transform: translate3d(0, -12vh, var(--z)) rotate(var(--rot));
+      opacity: 0;
+    }
+    12% { opacity: var(--op); }
+    88% { opacity: var(--op); }
+    100% {
+      transform: translate3d(var(--dx), 112vh, var(--z)) rotate(var(--rot));
+      opacity: 0;
+    }
+  }
+
+  /* —— 透明渐变小爱心：向上飘 —— */
+  .heart {
+    position: absolute;
+    width: var(--s);
+    height: var(--s);
+    opacity: 0;
+    pointer-events: none;
+    animation: heartRise ease-in-out infinite;
+    transform-style: preserve-3d;
+    filter: blur(0.2px);
+  }
+
+  .heart::before,
+  .heart::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50% 50% 0 0;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 170, 230, var(--ha)),
+      rgba(255, 100, 200, calc(var(--ha) * 0.35)) 55%,
+      transparent
+    );
+  }
+
+  .heart::before {
+    left: 25%;
+    top: 0;
+    transform: rotate(-45deg);
+    transform-origin: 0 100%;
+  }
+
+  .heart::after {
+    left: 0;
+    top: 0;
+    transform: rotate(45deg);
+    transform-origin: 100% 100%;
+  }
+
+  @keyframes heartRise {
+    0% {
+      transform: translate3d(0, 12vh, var(--z)) scale(var(--hs)) rotate(var(--rot));
+      opacity: 0;
+    }
+    18% { opacity: 1; }
+    78% { opacity: 0.85; }
+    100% {
+      transform: translate3d(var(--dx), -110vh, var(--z)) scale(calc(var(--hs) * 1.12)) rotate(var(--rot));
+      opacity: 0;
+    }
+  }
+
+
+  /* —— 快速划过祝福语（近大远小 / 近快远慢）—— */
+  .phrase {
+    position: absolute;
+    white-space: nowrap;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    will-change: transform, opacity;
+    animation-name: swipe;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    pointer-events: none;
+    transform-style: preserve-3d;
+  }
+
+  /* 远景：暗紫、糊、小 —— 空间纵深 */
+  .phrase.bg {
+    opacity: 0.22;
+    filter: blur(1.8px);
+    color: #c48ae0;
+    text-shadow:
+      0 0 10px rgba(180, 80, 200, 0.35),
+      0 0 28px rgba(120, 40, 140, 0.25);
+    font-weight: 600;
+  }
+
+  /* 中景：粉紫霓虹 */
+  .phrase.mid {
+    opacity: 0.62;
+    color: #ff9aec;
+    text-shadow:
+      0 0 8px rgba(255, 79, 216, 0.9),
+      0 0 22px rgba(255, 79, 216, 0.55),
+      0 0 48px rgba(192, 132, 252, 0.3);
+  }
+
+  /* 近景：亮粉白霓虹灯管感 */
+  .phrase.front {
+    opacity: 1;
+    color: #ffe6fb;
+    font-weight: 800;
+    text-shadow:
+      0 0 4px rgba(255, 255, 255, 0.85),
+      0 0 12px rgba(255, 110, 230, 1),
+      0 0 28px rgba(255, 79, 216, 0.95),
+      0 0 56px rgba(255, 79, 216, 0.6),
+      0 0 100px rgba(192, 132, 252, 0.4);
+  }
+
+  .phrase.en {
+    font-family: "Georgia", "Times New Roman", serif;
+    font-style: italic;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+  }
+
+  .phrase.hidden-love {
+    filter: blur(1.2px);
+    text-shadow: 0 0 10px rgba(255, 120, 220, 0.12);
+  }
+
+  @keyframes swipe {
+    /* 下方入场（快） */
+    0% {
+      transform: translate3d(var(--x), var(--y0), var(--z)) scale(var(--sc)) rotate(var(--rot));
+      opacity: 0;
+      animation-timing-function: cubic-bezier(0.12, 0.62, 0.22, 1);
+    }
+    8% { opacity: var(--op); }
+    /* 前 2s：快速上滑到中部，明显减速 */
+    30% {
+      transform: translate3d(var(--x), var(--ym1), var(--z)) scale(var(--sc)) rotate(var(--rot));
+      opacity: var(--op);
+      animation-timing-function: linear;
+    }
+    /* 中部缓慢漂 1.5s */
+    52% {
+      transform: translate3d(var(--x), var(--ym2), var(--z)) scale(var(--sc)) rotate(var(--rot));
+      opacity: var(--op);
+      animation-timing-function: cubic-bezier(0.55, 0.05, 0.85, 0.55);
+    }
+    /* 逐渐加速，从上方掠过 */
+    100% {
+      transform: translate3d(var(--x), var(--y1), var(--z)) scale(var(--sc)) rotate(var(--rot));
+      opacity: 0;
+    }
+  }
+
+  .petal {
+    position: absolute;
+    border-radius: 50% 40% 55% 45%;
+    opacity: 0.22;
+    background: radial-gradient(circle at 35% 30%, #d49272, var(--petal) 55%, #6b3a2c 100%);
+    filter: blur(0.5px);
+    will-change: transform, opacity;
+    animation: petalFall linear infinite;
+    pointer-events: none;
+    transform-style: preserve-3d;
+  }
+
+  .petal.pink {
+    background: radial-gradient(circle at 35% 30%, #f0a0d8, #b45a9c 55%, #5a2850 100%);
+    opacity: 0.18;
+  }
+
+  @keyframes petalFall {
+    0% {
+      transform: translate3d(0, -12vh, var(--z)) rotate(0deg) scale(var(--ps));
+      opacity: 0;
+    }
+    10% { opacity: var(--po); }
+    90% { opacity: var(--po); }
+    100% {
+      transform: translate3d(var(--px), 112vh, var(--z)) rotate(var(--pr)) scale(var(--ps));
+      opacity: 0;
+    }
+  }
+
+  .spark {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #fff0fc;
+    box-shadow: 0 0 8px 2px rgba(255, 120, 220, 0.8);
+    opacity: 0;
+    animation: twinkle ease-in-out infinite;
+    pointer-events: none;
+    transform-style: preserve-3d;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0; transform: scale(0.4) translateZ(var(--z, 0px)); }
+    50% { opacity: 0.85; transform: scale(1) translateZ(var(--z, 0px)); }
+  }
+
+  /* 点击：球面感冲击波 + 近景弹出词 */
+  .tap-word {
+    position: absolute;
+    white-space: nowrap;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #ffe0f8;
+    text-shadow:
+      0 0 8px rgba(255, 120, 230, 1),
+      0 0 22px rgba(255, 79, 216, 0.95),
+      0 0 48px rgba(192, 132, 252, 0.6);
+    pointer-events: none;
+    animation: popFloat 1.8s ease-out forwards;
+    transform: translate(-50%, -50%) translateZ(90px);
+    z-index: 20;
+  }
+
+  @keyframes popFloat {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateZ(-40px) scale(0.45);
+      filter: blur(5px);
+    }
+    18% {
+      opacity: 1;
+      transform: translate(-50%, -70%) translateZ(90px) scale(1.08);
+      filter: blur(0);
+    }
+    70% {
+      opacity: 0.95;
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -180%) translateZ(130px) scale(1.2);
+      filter: blur(2px);
+    }
+  }
+
+  .tap-ripple {
+    position: absolute;
+    width: 14px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 120, 220, 0.75);
+    box-shadow:
+      0 0 16px rgba(255, 79, 216, 0.55),
+      inset 0 0 12px rgba(255, 120, 220, 0.25);
+    transform: translate(-50%, -50%) rotateX(62deg) scale(1);
+    animation: ripple 0.85s ease-out forwards;
+    pointer-events: none;
+    z-index: 15;
+  }
+
+  @keyframes ripple {
+    0% {
+      opacity: 0.95;
+      width: 16px;
+      height: 11px;
+    }
+    100% {
+      opacity: 0;
+      width: 170px;
+      height: 110px;
+    }
+  }
+
+  #gift {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    padding: 18px 24px calc(22px + env(safe-area-inset-bottom));
+    text-align: center;
+    background: linear-gradient(to top, rgba(12, 2, 20, 0.82), transparent);
+    pointer-events: none;
+  }
+
+  #gift .line {
+    font-size: clamp(13px, 3.8vw, 16px);
+    line-height: 1.7;
+    color: #ffd0f0;
+    text-shadow: 0 0 12px rgba(255, 79, 216, 0.55), 0 1px 2px rgba(0, 0, 0, 0.4);
+    letter-spacing: 0.12em;
+    font-weight: 500;
+  }
+
+  #gift .sub {
+    margin-top: 6px;
+    font-size: clamp(10px, 2.6vw, 12px);
+    letter-spacing: 0.18em;
+    color: rgba(255, 180, 230, 0.55);
+    text-transform: uppercase;
+  }
+
+  #title {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 25;
+    padding: calc(14px + env(safe-area-inset-top)) 16px 28px;
+    text-align: center;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(12, 2, 20, 0.55), transparent);
+  }
+
+  #title h1 {
+    font-size: clamp(16px, 4.8vw, 20px);
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    color: #ffd8f5;
+    text-shadow: 0 0 16px rgba(255, 79, 216, 0.75);
+  }
+
+  /* 水面微光倒影（地平线） */
+  #horizon {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 28%;
+    pointer-events: none;
+    background:
+      linear-gradient(to top, rgba(255, 120, 200, 0.08), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255, 200, 140, 0.12), transparent 70%);
+    mask-image: linear-gradient(to top, black 0%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to top, black 0%, transparent 100%);
+  }
+
+  #horizon::before {
+    content: "";
+    position: absolute;
+    left: 20%;
+    right: 20%;
+    top: 8%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255, 180, 220, 0.35), transparent);
+    filter: blur(1px);
+    animation: horizonShimmer 6s ease-in-out infinite;
+  }
+
+  @keyframes horizonShimmer {
+    0%, 100% { opacity: 0.4; transform: scaleX(1); }
+    50% { opacity: 0.9; transform: scaleX(1.08); }
+  }
+
+  /* —— 信封开场 —— */
+  #intro {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    background:
+      radial-gradient(ellipse 80% 55% at 50% 42%, rgba(160, 40, 140, 0.28), transparent 60%),
+      linear-gradient(165deg, var(--bg-mid), var(--bg-deep) 55%, #180522);
+    cursor: pointer;
+    transition: opacity 0.7s ease, visibility 0.7s ease;
+    padding: 24px;
+  }
+
+  #intro.is-open {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  #intro .intro-tip {
+    font-size: clamp(12px, 3.2vw, 14px);
+    letter-spacing: 0.28em;
+    color: rgba(255, 180, 230, 0.7);
+  }
+
+  #intro .intro-title {
+    font-size: clamp(18px, 5.2vw, 24px);
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    color: #ffd8f5;
+    text-shadow:
+      0 0 12px rgba(255, 79, 216, 0.75),
+      0 0 36px rgba(255, 79, 216, 0.35);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .envelope-wrap {
+    position: relative;
+    width: min(72vw, 280px);
+    height: min(48vw, 186px);
+    animation: envFloat 3.2s ease-in-out infinite;
+    filter: drop-shadow(0 18px 40px rgba(255, 79, 216, 0.35));
+  }
+
+  @keyframes envFloat {
+    0%, 100% { transform: translateY(0) rotate(-1deg); }
+    50% { transform: translateY(-10px) rotate(1deg); }
+  }
+
+  .envelope {
+    position: absolute;
+    inset: 0;
+  }
+
+  .env-body {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background:
+      linear-gradient(145deg, #5a1a58 0%, #3a0f42 45%, #2a0a32 100%);
+    border: 1px solid rgba(255, 140, 220, 0.35);
+    overflow: hidden;
+    z-index: 2;
+  }
+
+  .env-body::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(135deg, transparent 42%, rgba(255, 120, 220, 0.12) 42%, rgba(255, 120, 220, 0.12) 58%, transparent 58%),
+      linear-gradient(45deg, transparent 42%, rgba(255, 120, 220, 0.1) 42%, rgba(255, 120, 220, 0.1) 58%, transparent 58%);
+    pointer-events: none;
+  }
+
+  .env-heart {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    width: 36px;
+    height: 36px;
+    margin: -18px 0 0 -18px;
+    z-index: 3;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff9ae8, #ff4fd8 55%, #c028a8);
+    box-shadow:
+      0 0 18px rgba(255, 79, 216, 0.8),
+      0 0 42px rgba(255, 79, 216, 0.4);
+  }
+
+  .env-heart::after {
+    content: "月";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff0fc;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  }
+
+  .env-flap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 54%;
+    z-index: 4;
+    transform-origin: top center;
+    transition: transform 0.65s cubic-bezier(0.3, 0.7, 0.2, 1);
+    background:
+      linear-gradient(180deg, #6b2268 0%, #4a1550 100%);
+    border: 1px solid rgba(255, 140, 220, 0.35);
+    border-radius: 12px 12px 0 0;
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+    box-shadow: 0 8px 20px rgba(20, 0, 30, 0.35);
+  }
+
+  .envelope-wrap.is-open .env-flap {
+    transform: rotateX(180deg);
+  }
+
+  .envelope-wrap.is-open {
+    animation: none;
+  }
+
+  .env-card {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    bottom: 12%;
+    height: 72%;
+    border-radius: 10px;
+    background: linear-gradient(160deg, #2a0a32, #1a0628 70%);
+    border: 1px solid rgba(255, 140, 220, 0.25);
+    z-index: 1;
+    transform: translateY(8%);
+    transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s, opacity 0.5s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px;
+  }
+
+  .envelope-wrap.is-open .env-card {
+    transform: translateY(-42%);
+  }
+
+  .env-card .env-to {
+    font-size: clamp(14px, 4vw, 18px);
+    letter-spacing: 0.28em;
+    color: #ffe8a8;
+    text-shadow: 0 0 14px rgba(255, 200, 100, 0.55);
+    font-weight: 600;
+  }
+
+  .env-card .env-msg {
+    font-size: clamp(12px, 3.2vw, 14px);
+    letter-spacing: 0.14em;
+    color: #ffd0f0;
+    text-shadow: 0 0 12px rgba(255, 79, 216, 0.55);
+    text-align: center;
+    line-height: 1.7;
+  }
+
+  #intro .intro-hint {
+    font-size: clamp(11px, 2.8vw, 12px);
+    letter-spacing: 0.32em;
+    color: rgba(255, 180, 230, 0.5);
+    animation: hintPulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes hintPulse {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 0.95; }
+  }
+
+  #intro.is-open .envelope-wrap {
+    transform: scale(1.12);
+    opacity: 0;
+    transition: transform 0.55s ease, opacity 0.45s ease 0.15s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .envelope-wrap { animation: none; }
+    #intro .intro-hint { animation: none; }
+    .phrase, .petal, .spark {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      opacity: 0.7 !important;
+    }
+    .tap-word { animation-duration: 1.2s; }
+    #world { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<p data-aigc-mark="1" style="margin:0 0 8px;font-size:10px;line-height:1.3;color:#6b6560;font-weight:400;">AI生成</p>
+
+  <div id="intro" role="button" tabindex="0" aria-label="拆开中秋祝福">
+    <div class="intro-title">您有一份不太敢写太满的祝福</div>
+    <div class="envelope-wrap" id="envelope">
+      <div class="envelope">
+        <div class="env-card">
+          <span class="env-to">写给你</span>
+          <span class="env-msg">天上月是人间月<br />眼前人是心上人</span>
+        </div>
+        <div class="env-body"></div>
+        <div class="env-heart"></div>
+        <div class="env-flap"></div>
+      </div>
+    </div>
+    <div class="intro-hint">轻点拆开</div>
+    <div class="intro-tip">JUST FOR YOU · MID-AUTUMN</div>
+  </div>
+
+  <div id="stage" role="application" aria-label="中秋霓虹祝福页">
+    <div id="world">
+      <div class="layer" id="bg-text"></div>
+      <div class="layer" id="petals"></div>
+      <div class="layer" id="main-text"></div>
+      <div class="layer" id="sparkles"></div>
+      <div class="layer" id="fx-layer"></div>
+      <div class="layer" id="tap-layer"></div>
+      <div id="horizon"></div>
+    </div>
+
+    <div id="title"><h1>🥰 中秋节快乐</h1></div>
+
+    <div id="gift">
+      <div class="line">天上月是人间月 · 眼前人是心上人</div>
+      <div class="sub">Happy Mid-Autumn · 这一句只说给你听</div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // —— 信封开场：点击拆开 ——
+  var intro = document.getElementById("intro");
+  var envelope = document.getElementById("envelope");
+  var introOpened = false;
+
+  function openEnvelope() {
+    if (introOpened) return;
+    introOpened = true;
+    if (envelope) envelope.classList.add("is-open");
+    if (intro) intro.classList.add("is-open");
+    setTimeout(function () {
+      if (intro && intro.parentNode) intro.parentNode.removeChild(intro);
+    }, 900);
+  }
+
+  if (intro) {
+    intro.addEventListener("pointerdown", function (e) {
+      e.preventDefault();
+      openEnvelope();
+    });
+    intro.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openEnvelope();
+      }
+    });
+  }
+
+  // 漂浮词：50% 暧昧，不直接表白
+  var PHRASES = [
+    "天上月是人间月 眼前人是心上人",
+    "今晚月色真美",
+    "一口月饼一口你",
+    "想从你的窗子里看月亮",
+    "如果是和你 月亮每天都是圆的",
+    "月饼甜 · 你更甜",
+    "看到月亮就想到一个不太该想的人",
+    "把最圆的月亮留给你",
+    "月色这么好 想和你分享",
+    "人月两团圆 少了一个人",
+    "你比月饼好吃一点点",
+    "这轮月 好像比平时好看"
+  ];
+
+  // 点击冒出的词
+  var TAP_PHRASES = [
+    "天上月是人间月 眼前人是心上人",
+    "今晚月色真美",
+    "一口月饼一口你",
+    "想从你的窗子里看月亮",
+    "月亮也偏爱你",
+    "月饼甜 · 你更甜",
+    "刚好有点想你",
+    "人月两团圆",
+    "月圆的时候会想起你",
+    "要不要一起看月亮",
+    "把温柔都留给今晚",
+    "你出现之后 月亮都亮了一点",
+    "不说破的那句 中秋快乐",
+    "见面吧 就今晚"
+  ];
+
+  var bgLayer = document.getElementById("bg-text");
+  var mainLayer = document.getElementById("main-text");
+  var petalLayer = document.getElementById("petals");
+  var sparkleLayer = document.getElementById("sparkles");
+  var tapLayer = document.getElementById("tap-layer");
+  var stage = document.getElementById("stage");
+  var world = document.getElementById("world");
+
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function rand(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  function pick(arr) {
+    return arr[(Math.random() * arr.length) | 0];
+  }
+
+  function makePhrase(layer, kind) {
+    var el = document.createElement("div");
+    var text = pick(PHRASES);
+    var isLove = text.indexOf("love") !== -1;
+    el.className = "phrase " + kind + (isLove ? " en hidden-love" : "");
+    el.textContent = text;
+
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var isBg = kind === "bg";
+    var isFront = kind === "front";
+    var isPhone = vw <= 480;
+
+    // 近大远小：整体缩到约 60%
+    var size = isFront
+      ? vw * rand(0.042, isPhone ? 0.066 : 0.072)
+      : isBg
+        ? vw * rand(0.019, 0.03)
+        : vw * rand(0.029, isPhone ? 0.043 : 0.048);
+    if (isLove) size *= 0.85;
+
+    // 3D 景深：近处靠前，远处靠后
+    var zScale = isPhone ? 0.85 : 1;
+    var z = isFront
+      ? rand(100, 170) * zScale
+      : isBg
+        ? rand(-220, -130) * zScale
+        : rand(-30, 60) * zScale;
+    var sc = isFront ? rand(1.08, 1.22) : isBg ? rand(0.78, 0.9) : rand(0.92, 1.06);
+
+    // 斜侧立体：统一斜向倾角，贴近参考图字面
+    var rot = isFront ? rand(-18, -10) : rand(-22, -8);
+
+    // 整段 6.5s：0–2s 冲到中部 → 中部慢 1.5s → 加速掠过顶部
+    var dur = reduceMotion
+      ? 40
+      : isFront
+        ? rand(6.2, 6.6)
+        : isBg
+          ? rand(6.8, 7.2)
+          : rand(6.4, 6.8);
+
+    var op = isLove
+      ? rand(0.06, 0.1)
+      : isBg
+        ? rand(0.2, 0.34)
+        : isFront
+          ? rand(0.92, 1)
+          : rand(0.5, 0.78);
+
+    // 沿对角带（左下 → 右上）分布，斜侧排布不散乱
+    var t = Math.random();
+    var band = (isFront ? 0.15 : isBg ? 0.7 : 0.42) + t * 0.55;
+    // 对角参数：band 越大越靠右上
+    var x = vw * (0.02 + band * 0.88) + rand(-18, 18);
+    var yBase = vh * (0.92 - band * 0.72);
+
+    // 下 → 上：底部入场，中部停留，上方离场
+    var y0 = yBase + vh * 0.45 + rand(30, 90);
+    var ym1 = yBase + rand(-8, 20);
+    var ym2 = ym1 - vh * rand(0.04, 0.08);
+    var y1 = yBase - vh * 0.75 - rand(40, 120);
+
+    el.style.left = "0";
+    el.style.top = "0";
+    el.style.fontSize = size + "px";
+    el.style.setProperty("--x", x + "px");
+    el.style.setProperty("--y0", y0 + "px");
+    el.style.setProperty("--ym1", ym1 + "px");
+    el.style.setProperty("--ym2", ym2 + "px");
+    el.style.setProperty("--y1", y1 + "px");
+    el.style.setProperty("--z", z + "px");
+    el.style.setProperty("--sc", sc);
+    el.style.setProperty("--rot", rot + "deg");
+    el.style.setProperty("--op", op);
+    el.style.animationDuration = dur + "s";
+    // 铺开时序，开局就有字在中部
+    el.style.animationDelay = -dur * Math.random() + "s";
+
+    layer.appendChild(el);
+  }
+
+  function seedPhrases() {
+    var i;
+    var phone = window.innerWidth <= 480;
+    // 疏散约 60%：只留约四成数量
+    var nBg = phone ? 6 : 7;
+    var nMid = phone ? 8 : 9;
+    var nFront = phone ? 5 : 6;
+    for (i = 0; i < nBg; i++) makePhrase(bgLayer, "bg");
+    for (i = 0; i < nMid; i++) makePhrase(mainLayer, "mid");
+    for (i = 0; i < nFront; i++) makePhrase(mainLayer, "front");
+  }
+
+  function seedPetals() {
+    var count = reduceMotion ? 5 : 14;
+    var pScale = Math.min(window.innerWidth, 430) / 390;
+    for (var i = 0; i < count; i++) {
+      var el = document.createElement("div");
+      el.className = "petal" + (Math.random() > 0.55 ? " pink" : "");
+      var w = rand(12, 32) * pScale;
+      el.style.width = w + "px";
+      el.style.height = w * rand(0.55, 0.85) + "px";
+      el.style.left = rand(-5, 95) + "%";
+      el.style.top = rand(-15, 5) + "%";
+      el.style.setProperty("--px", rand(-30, 30) + "px");
+      el.style.setProperty("--pr", rand(-180, 180) + "deg");
+      el.style.setProperty("--ps", rand(0.7, 1.4).toFixed(2));
+      el.style.setProperty("--po", rand(0.14, 0.28).toFixed(2));
+      el.style.setProperty("--z", rand(-80, 50) + "px");
+      el.style.animationDuration = rand(6, 12) + "s";
+      el.style.animationDelay = rand(-12, 0) + "s";
+      petalLayer.appendChild(el);
+    }
+  }
+
+  function seedSparkles() {
+    var count = reduceMotion ? 0 : 28;
+    for (var i = 0; i < count; i++) {
+      var el = document.createElement("div");
+      el.className = "spark";
+      el.style.left = rand(0, 100) + "%";
+      el.style.top = rand(0, 100) + "%";
+      el.style.setProperty("--z", rand(-160, 100) + "px");
+      el.style.animationDuration = rand(1.4, 3.2) + "s";
+      el.style.animationDelay = rand(0, 3) + "s";
+      sparkleLayer.appendChild(el);
+    }
+  }
+
+  function seedShootingStars() {
+    var fx = document.getElementById("fx-layer");
+    if (!fx) return;
+    var count = reduceMotion ? 0 : 10;
+    for (var i = 0; i < count; i++) {
+      var el = document.createElement("div");
+      el.className = "shooting-star";
+      el.style.left = rand(0, 95) + "%";
+      el.style.top = rand(-15, 5) + "%";
+      el.style.setProperty("--z", rand(-120, 80) + "px");
+      el.style.setProperty("--dx", rand(-40, 90) + "px");
+      el.style.setProperty("--rot", rand(18, 38) + "deg");
+      el.style.setProperty("--op", rand(0.45, 0.95));
+      // 近快远慢
+      el.style.animationDuration = rand(1.8, 4.2) + "s";
+      el.style.animationDelay = -rand(0, 5) + "s";
+      fx.appendChild(el);
+    }
+  }
+
+  function seedHearts() {
+    var fx = document.getElementById("fx-layer");
+    if (!fx) return;
+    var count = reduceMotion ? 0 : 16;
+    for (var i = 0; i < count; i++) {
+      var el = document.createElement("div");
+      el.className = "heart";
+      var s = rand(10, 22);
+      el.style.left = rand(2, 92) + "%";
+      el.style.top = rand(55, 110) + "%";
+      el.style.setProperty("--s", s + "px");
+      el.style.setProperty("--ha", rand(0.18, 0.55).toFixed(2));
+      el.style.setProperty("--hs", rand(0.85, 1.25).toFixed(2));
+      el.style.setProperty("--z", rand(-100, 90) + "px");
+      el.style.setProperty("--dx", rand(-28, 28) + "px");
+      el.style.setProperty("--rot", rand(-18, 18) + "deg");
+      // 上浮稍慢，透明渐变
+      el.style.animationDuration = rand(7, 13) + "s";
+      el.style.animationDelay = -rand(0, 12) + "s";
+      fx.appendChild(el);
+    }
+  }
+
+  function spawnTap(x, y) {
+    var ripple = document.createElement("div");
+    ripple.className = "tap-ripple";
+    ripple.style.left = x + "px";
+    ripple.style.top = y + "px";
+    tapLayer.appendChild(ripple);
+    setTimeout(function () {
+      ripple.remove();
+    }, 900);
+
+    var word = document.createElement("div");
+    word.className = "tap-word";
+    word.textContent = pick(TAP_PHRASES);
+    word.style.left = x + "px";
+    word.style.top = y + "px";
+    // 手机上点按词稍小，避免占满一行
+    var wScale = Math.min(window.innerWidth, 430) / 390;
+    var isPhone = window.innerWidth <= 480;
+    word.style.fontSize = (isPhone ? rand(14, 19) : rand(15, 22)) * wScale + "px";
+    tapLayer.appendChild(word);
+    setTimeout(function () {
+      word.remove();
+    }, 1900);
+
+    for (var i = 0; i < 5; i++) {
+      var s = document.createElement("div");
+      s.className = "spark";
+      s.style.left = (x + rand(-36, 36)) + "px";
+      s.style.top = (y + rand(-36, 36)) + "px";
+      s.style.opacity = "0.9";
+      s.style.setProperty("--z", rand(40, 120) + "px");
+      s.style.animationDuration = "0.6s";
+      tapLayer.appendChild(s);
+      (function (node) {
+        setTimeout(function () {
+          node.remove();
+        }, 700);
+      })(s);
+    }
+  }
+
+  var lastTapAt = 0;
+
+  function onTap(x, y) {
+    var now = Date.now();
+    if (now - lastTapAt < 280) return;
+    lastTapAt = now;
+    spawnTap(x, y);
+  }
+
+  if (window.PointerEvent) {
+    stage.addEventListener("pointerdown", function (e) {
+      if (e.target.closest && e.target.closest("#title, #gift")) return;
+      onTap(e.clientX, e.clientY);
+    });
+  } else {
+    stage.addEventListener("touchstart", function (e) {
+      if (e.targetTouches && e.targetTouches[0]) {
+        var t = e.targetTouches[0];
+        onTap(t.clientX, t.clientY);
+      }
+    }, { passive: true });
+  }
+
+  /* —— 视差：鼠标 / 陀螺仪驱动 #world 倾斜 —— */
+  var targetRX = 0;
+  var targetRY = 0;
+  var curRX = 0;
+  var curRY = 0;
+  var parallaxOn = !reduceMotion;
+
+  function setTiltFromPointer(clientX, clientY) {
+    if (!parallaxOn) return;
+    var nx = (clientX / window.innerWidth) * 2 - 1;
+    var ny = (clientY / window.innerHeight) * 2 - 1;
+    // clamp so the stage never feels "broken"
+    if (nx < -1) nx = -1;
+    if (nx > 1) nx = 1;
+    if (ny < -1) ny = -1;
+    if (ny > 1) ny = 1;
+    targetRY = nx * 7;
+    targetRX = -ny * 5;
+  }
+
+  if (window.PointerEvent) {
+    stage.addEventListener("pointermove", function (e) {
+      setTiltFromPointer(e.clientX, e.clientY);
+    }, { passive: true });
+  }
+
+  // mobile gyro (iOS needs permission on some versions)
+  function onDeviceOrientation(e) {
+    if (!parallaxOn) return;
+    if (e.gamma == null || e.beta == null) return;
+    var g = e.gamma; // left-right: -90..90
+    var b = e.beta;  // front-back: -180..180
+    var nx = Math.max(-1, Math.min(1, g / 35));
+    var ny = Math.max(-1, Math.min(1, (b - 45) / 40));
+    targetRY = nx * 8;
+    targetRX = -ny * 5;
+  }
+
+  if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === "function") {
+    // iOS 13+ — request on first tap
+    var gyroRequested = false;
+    stage.addEventListener("pointerdown", function () {
+      if (gyroRequested) return;
+      gyroRequested = true;
+      DeviceOrientationEvent.requestPermission().then(function (state) {
+        if (state === "granted") {
+          window.addEventListener("deviceorientation", onDeviceOrientation, true);
+        }
+      }).catch(function () {});
+    });
+  } else if (window.DeviceOrientationEvent) {
+    window.addEventListener("deviceorientation", onDeviceOrientation, true);
+  }
+
+  function tick() {
+    if (parallaxOn) {
+      // critically-damped-ish lerp
+      curRX += (targetRX - curRX) * 0.08;
+      curRY += (targetRY - curRY) * 0.08;
+      world.style.transform =
+        "rotateX(" + curRX.toFixed(3) + "deg) rotateY(" + curRY.toFixed(3) + "deg)";
+    }
+    requestAnimationFrame(tick);
+  }
+
+  seedPhrases();
+  seedPetals();
+  seedSparkles();
+  seedShootingStars();
+  seedHearts();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
